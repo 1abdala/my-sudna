@@ -1005,36 +1005,36 @@
         {
           question: "Which ancient kingdom built the royal pyramids of Meroë?",
           answers: [
-            "Kingdom of Kush",
             "Roman Empire",
+            "Kingdom of Kush",
             "Aksumite Empire",
             "Ottoman Empire"
           ],
-          correct: 0,
+          correct: 1,
           explanation: "Meroë was the royal capital of the Kingdom of Kush in Nubia, home to over 200 steep-sided pyramids.",
           source: "Explore & History"
         },
         {
           question: "How many ancient pyramids does Sudan have compared to Egypt?",
           answers: [
-            "Over 250 pyramids — more than double Egypt!",
             "Fewer than 10 pyramids",
             "The exact same number",
+            "Over 250 pyramids — more than double Egypt!",
             "Only 1 giant pyramid"
           ],
-          correct: 0,
+          correct: 2,
           explanation: "Sudan is home to over 250+ ancient pyramids, making it the country with the most pyramids in the world!",
           source: "Fun Facts Archive"
         },
         {
           question: "Where do the Blue Nile and White Nile meet in Sudan?",
           answers: [
-            "Khartoum (Al-Mogran)",
             "Port Sudan",
             "Jebel Barkal",
-            "Kerma"
+            "Kerma",
+            "Khartoum (Al-Mogran)"
           ],
-          correct: 0,
+          correct: 3,
           explanation: "The two Nile rivers meet in Khartoum at Al-Mogran to form the main Nile River flowing north.",
           source: "Explore Waypoints"
         },
@@ -1053,36 +1053,36 @@
         {
           question: "Who were the famous warrior queens of ancient Kush who defeated Roman legions?",
           answers: [
-            "Kandakes (such as Queen Amanirenas)",
             "Cleopatra",
+            "Kandakes (such as Queen Amanirenas)",
             "Nefertiti",
             "Queen of Sheba"
           ],
-          correct: 0,
+          correct: 1,
           explanation: "Kandakes were the powerful queen mothers of Kush. Queen Amanirenas famously led troops and forced Rome into a peace treaty.",
           source: "History Ledger"
         },
         {
           question: "What is the traditional 4.5-meter colorful wrapped garment worn by Sudanese women?",
           answers: [
-            "Thoub (ثوب)",
             "Kaftan",
             "Kimono",
+            "Thoub (ثوب)",
             "Sari"
           ],
-          correct: 0,
+          correct: 2,
           explanation: "The Sudanese Thoub is an elegant, colorful draped garment celebrating cultural dignity and artistry.",
           source: "Culture Dispatch"
         },
         {
           question: "What is Sudan's sacred sandstone mountain associated with the god Amun?",
           answers: [
-            "Jebel Barkal",
             "Mount Everest",
+            "Jebel Marra",
             "Mount Kilimanjaro",
-            "Jebel Marra"
+            "Jebel Barkal"
           ],
-          correct: 0,
+          correct: 3,
           explanation: "Jebel Barkal in Karima was considered a sacred mountain by Kushite pharaohs and is a UNESCO World Heritage site.",
           source: "Explore Waypoints"
         },
@@ -1126,6 +1126,15 @@
       let score = 0;
       let answered = false;
 
+      function shuffleArray(arr) {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
       function startQuiz() {
         currentQuestionIdx = 0;
         score = 0;
@@ -1156,28 +1165,30 @@
         if (quizNextBtn) quizNextBtn.classList.add('hidden');
         if (quizAnswersContainer) quizAnswersContainer.innerHTML = '';
 
-        q.answers.forEach((ans, idx) => {
+        // Prepare choices with original correct flag, then shuffle
+        const choices = q.answers.map((text, idx) => ({ text, isCorrect: idx === q.correct }));
+        const shuffledChoices = shuffleArray(choices);
+
+        shuffledChoices.forEach((choice, idx) => {
           const btn = document.createElement('button');
           btn.className = "w-full p-3 rounded-xl border-2 border-outline-variant/60 bg-surface-container-lowest font-body-sm text-[14px] text-primary font-medium text-left flex items-center justify-between hover:border-secondary hover:bg-surface-container transition-all active:scale-[0.99]";
           btn.innerHTML = `
-            <span>${ans}</span>
+            <span>${choice.text}</span>
             <span class="w-6 h-6 rounded-full border border-outline flex items-center justify-center font-label-code text-[11px] text-outline flex-shrink-0">${String.fromCharCode(65 + idx)}</span>
           `;
-          btn.addEventListener('click', () => handleAnswer(idx, btn));
+          btn.addEventListener('click', () => handleAnswer(choice.isCorrect, btn, shuffledChoices));
           if (quizAnswersContainer) quizAnswersContainer.appendChild(btn);
         });
       }
 
-      function handleAnswer(selectedIdx, clickedBtn) {
+      function handleAnswer(isCorrect, clickedBtn, shuffledChoices) {
         if (answered) return;
         answered = true;
 
-        const q = quizQuestions[currentQuestionIdx];
         const buttons = quizAnswersContainer.querySelectorAll('button');
-
         buttons.forEach(b => b.disabled = true);
 
-        if (selectedIdx === q.correct) {
+        if (isCorrect) {
           score++;
           if (quizScoreLive) quizScoreLive.textContent = `SCORE: ${score}`;
           clickedBtn.className = "w-full p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950 font-body-sm text-[14px] font-semibold text-left flex items-center justify-between shadow-sm";
@@ -1189,9 +1200,12 @@
         } else {
           clickedBtn.className = "w-full p-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950 font-body-sm text-[14px] font-medium text-left flex items-center justify-between";
           
-          if (buttons[q.correct]) {
-            buttons[q.correct].className = "w-full p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950 font-body-sm text-[14px] font-semibold text-left flex items-center justify-between";
-          }
+          // Highlight the correct choice button
+          shuffledChoices.forEach((choice, idx) => {
+            if (choice.isCorrect && buttons[idx]) {
+              buttons[idx].className = "w-full p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950 font-body-sm text-[14px] font-semibold text-left flex items-center justify-between";
+            }
+          });
 
           if (quizFeedbackTitle) {
             quizFeedbackTitle.className = "flex items-center gap-1.5 font-label-stamp text-[11px] font-bold text-rose-700";
@@ -1200,7 +1214,8 @@
           if (quizFeedbackBox) quizFeedbackBox.className = "flex flex-col gap-1 p-3 rounded-lg border border-rose-300 bg-rose-50/80 text-[13px] font-body-sm mt-2";
         }
 
-        if (quizFeedbackExplanation) quizFeedbackExplanation.textContent = q.explanation;
+        const q = quizQuestions[currentQuestionIdx];
+        if (quizFeedbackExplanation && q) quizFeedbackExplanation.textContent = q.explanation;
         if (quizFeedbackBox) quizFeedbackBox.classList.remove('hidden');
         if (quizNextBtn) {
           quizNextBtn.classList.remove('hidden');
